@@ -13,7 +13,7 @@
     #Использовать TelegramMessageSenderByUserName
 
     TelegramMessageSenderByUserName.Init("DSLJFKDSJLFJLSKJL");
-    TelegramMessageSenderByUserName.SendTelegramMessage("username", "Hi!");
+    TelegramMessageSenderByUserName.SendMessage("username", "Hi!");
 
 
 Перед отправкой сообщения необходимо выполнить инициализацию, с помощью метода Init:
@@ -22,6 +22,6 @@
 
 где, Путь к рабочему каталогу - необязательный параметр, определяющий путь к каталогу, в котором будут сохранены технические таблицы, которые требуются для работы библиотеки. Желательно сохранять содержимое каталога, при его очистке потребуется оптравить сообщение боту, для возобновления работы.
 
-Отправка сообщения осуществляется с помощью метода SendTelegramMessage:
+Отправка сообщения осуществляется с помощью метода SendMessage:
 
-    TelegramMessageSenderByUserName.SendTelegramMessage(<ИмяПользователяТелеграм>, <ТекстСообщения>);
+    TelegramMessageSenderByUserName.SendMessage(<ИмяПользователяТелеграм>, <ТекстСообщения>);

@@ -14,7 +14,7 @@ Procedure Init(BotToken, WorkingFolder = "") Export
 
 EndProcedure
 
-Function ReadTelegramMessages(Body) Export
+Function ReadMessages(Body) Export
 	
 	Result = New Array;
 	
@@ -99,7 +99,7 @@ Procedure WriteUsersToStorage()
 
 	TextDoc = New TextDocument;
 	For Each Item In TelegramUsersInfo Do
-		TextDoc.AddLine(Item.Key + "=" + Item.Value);
+		TextDoc.AddLine(BotToken_ + "=" + Item.Key + "=" + Item.Value);
 	EndDo; 
 	TextDoc.Write(UsersFilePath);	
 	
@@ -119,9 +119,12 @@ Procedure ReadUsersFromStorage()
 	LineCount = TextDoc.LineCount();
 	For LineNum = 1 To LineCount Do
 		Line = TextDoc.GetLine(LineNum);
-		Pos = StrFind(Line,"=");
-		If Pos > 0 Then
-			TelegramUsersInfo.Insert(Left(Line, Pos - 1), Mid(Line, Pos + 1, StrLen(Line)));
+		BotTokenPos = StrFind(Line,"=");
+		If BotTokenPos > 0 Then
+			If Left(Line, BotTokenPos - 1) = BotToken_ Then
+				Pos = StrFind(Line,"=",,BotTokenPos + 1);		
+				TelegramUsersInfo.Insert(Mid(Line, BotTokenPos + 1, Pos - BotTokenPos - 1), Mid(Line, Pos + 1, StrLen(Line)));
+			EndIf
 		EndIf; 
 	EndDo;
 	
@@ -165,7 +168,7 @@ Procedure WriteUpdateIDToStorage(UpdateIDMap)
 	
 EndProcedure
  
-Function SendTelegramMessage(UserName, Message) Export
+Function SendMessage(UserName, Message) Export
 	
 	If Not ValueIsFilled(BotToken_) Then
 		Message(nstr("ru='Не задан API Bot Token. Необходимо вызвать метод Init и передать в него значение API Bot Token';
@@ -200,7 +203,7 @@ Function SendTelegramMessage(UserName, Message) Export
 		
 		Res = Connection.Get(Request);
 		If Res.StatusCode = 200 Then
-		MessageList = ReadTelegramMessages(Res.GetBodyAsString("UTF-8"));	
+		MessageList = ReadMessages(Res.GetBodyAsString("UTF-8"));	
 		EndIf;
 		
 		IndexLastMessage = MessageList.Count() - 1;	
