@@ -3,15 +3,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 //Telegram message sender by User name
 
-Var BotToken_, UsersFilePath, UpdateIDFilePath, UpdateIDMap, UpdateID, TelegramUsersInfo, UsedProxiesCount;
+Var BotToken_, UsersFilePath, UpdateIDFilePath, UpdateIDMap, UpdateID, TelegramUsersInfo;
 
 Procedure Init(BotToken, WorkingFolder = "") Export
 
 	BotToken_ = BotToken;
 	UsersFilePath = ?(IsBlankString(WorkingFolder), "Users.txt", WorkingFolder + "\Users.txt");	
 	UpdateIDFilePath = ?(IsBlankString(WorkingFolder), "UpdateID.txt", WorkingFolder + "\UpdateID.txt");
-
-	UsedProxiesCount = 0;
 
 	ReadUpdateIDFromStorage();
 	ReadUsersFromStorage();
