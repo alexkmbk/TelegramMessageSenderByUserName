@@ -1,7 +1,9 @@
+#Use SmartProxy
+
 ////////////////////////////////////////////////////////////////////////////////
 //Telegram message sender by User name
 
-Var BotToken_, UsersFilePath, UpdateIDFilePath, UpdateIDMap, UpdateID, TelegramUsersInfo, UsedProxies;
+Var BotToken_, UsersFilePath, UpdateIDFilePath, UpdateIDMap, UpdateID, TelegramUsersInfo, UsedProxiesCount;
 
 Procedure Init(BotToken, WorkingFolder = "") Export
 
@@ -9,7 +11,7 @@ Procedure Init(BotToken, WorkingFolder = "") Export
 	UsersFilePath = ?(IsBlankString(WorkingFolder), "Users.txt", WorkingFolder + "\Users.txt");	
 	UpdateIDFilePath = ?(IsBlankString(WorkingFolder), "UpdateID.txt", WorkingFolder + "\UpdateID.txt");
 
-	UsedProxies = New Array();
+	UsedProxiesCount = 0;
 
 	ReadUpdateIDFromStorage();
 	ReadUsersFromStorage();
@@ -169,37 +171,6 @@ Procedure WriteUpdateIDToStorage(UpdateIDMap)
 	TextDoc.Write(UpdateIDFilePath);	
 	
 EndProcedure
- 
-Function GetNextProxy()
-
-		ServerName = "https://www.proxy-list.download";
-		URL = "api/v1/get?type=https&anon=transparent&country=NL";
-		
-		HTTPRequest = New HTTPRequest(URL);
-		Connection = New HTTPConnection(ServerName);
-		Res = Connection.Get(HTTPRequest);
-		ResStr = Res.GetBodyAsString();
-		
-		StringsArray = New Array();
-		LineCount = StrLineCount(ResStr);
-
-		if LineCount <= UsedProxies.Count() Then
-			Return Undefined;	
-		EndIf;
-	
-		For StrNum = 1 To LineCount Do
-			Str = StrReplace(StrGetLine(ResStr, StrNum), Chars.CR, "");
-			StringsArray.Add(StrSplit(Str, ":"));
-		EndDo;
-		
-		ProxyIP = StringsArray[UsedProxies.Count()][0];
-		ProxyPort = Number(StringsArray[UsedProxies.Count()][1]);
-		Proxy = New InternetProxy(False);
-		Proxy.Set("https", ProxyIP, ProxyPort, "", "", False);
-		UsedProxies.Add(Proxy);
-		Return Proxy;
-			
-EndFunction
 
 Function SendMessage(UserName, Message) Export
 
@@ -210,7 +181,7 @@ Function SendMessage(UserName, Message) Export
 	Message(nstr("ru='Попытаемся найти подходящий прокси:'; en='Will try to find an appropriate proxy:'"));
 
 	For Count = 1 to 25 Do
-		Proxy = GetNextProxy();
+		Proxy = ПолучитьПрокси.Случайный();
 		if SendMessageInner(UserName, Message, Proxy) Then
 			Return True;
 		EndIf;
@@ -228,24 +199,24 @@ Function SendMessageInner(UserName, Message, Proxy = Undefined)
 		Return False;
 	EndIf; 
 						
-		Попытка
+		Try
 			if Proxy <> Undefined Then
 				Connection = New HTTPConnection("https://api.telegram.org", ,, , Proxy);
 			Else
 				Connection = New HTTPConnection("https://api.telegram.org");
-			EndIf;
-		Исключение
-			Сообщить("Ошибка создания объекта подключения к серверу Telegram:" + ОписаниеОшибки());
+			EndIf;			
+		Except
+			Message(StrTemplate(Nstr("ru='Ошибка создания объекта подключения к серверу Telegram:%1'; en='Telegram server connection failure: %1'"), ErrorDescription()));
 			Return False;
-		КонецПопытки;
+		EndTry;
 
 	CurrentChatID = TelegramUsersInfo.Get(UserName); 	
 
 	If CurrentChatID = Undefined Then
-	ReadUsersFromStorage();
-	CurrentChatID = TelegramUsersInfo.Get(UserName); 	
+		ReadUsersFromStorage();
+		CurrentChatID = TelegramUsersInfo.Get(UserName); 	
 	EndIf;
-
+	
 	If CurrentChatID = Undefined Then
 
 		UpdateID = 0;
